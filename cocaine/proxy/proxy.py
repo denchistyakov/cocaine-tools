@@ -208,8 +208,18 @@ class CocaineProxy(object):
             obj.finish()
 
     def pack_httprequest(self, request):
+        def is_header_exists(header, headers):
+            header = header.lower()
+            exists = False
+            for (key, value) in headers:
+                if key.lower() == header:
+                    exists = True
+                    break
+            return exists
+
         headers = [(item.key, item.value) for item in request.cookies.itervalues()]
         headers.extend(request.headers.iteritems())
+        headers.extend(((header.lower(), request.remote_ip) for header in ('X-Real-Ip', 'X-Forwarded-For') if not is_header_exists(header, headers)))
         d = request.method, request.uri, request.version, headers, request.body
         return d
 
